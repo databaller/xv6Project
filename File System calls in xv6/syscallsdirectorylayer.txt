@@ -1,0 +1,169 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+directory entry structure has following content => 
+
+1.ushort inum (inode number )
+2.char name ( name of directory )
+
+directory file contains data inform of such directory entries
+
+to find the name of directory entry gather all data blocks and search the name
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+lets talk about per process state 
+
+content of proc => 
+
+1.size of process memory in bytes
+2.pointer to page table
+3.kernel stack for process
+4.process statae
+5.process id
+6.who is parent process
+7.trap frame for current system call
+8.context 
+9.sleeping mode
+10.whether it is killed or not
+11.pointer to inode of current directory
+12. name of process
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+following contains the structure of file =>
+
+1.reference count
+2.whether it is readable or writeable
+3.pipe pointer
+4.inode pointer
+5.off or onn
+
+There is in memory and out memory copy of each inode
+
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+lets learn the sys open
+
+sys_open is software interrupt and all files open through sys_open
+
+purpose of sys_open is to get access to any file provided its name and mode
+
+it returns the file descriptor
+
+					SYS_OPEN()
+                                            |
+				    	    |
+					    \/
+					  NAME_I()
+                                            |
+                                            |
+					    \/
+				          NAME_X()
+                                            |
+                                            |
+                                            \/
+					 DIRLOOKUP()
+                                            |
+                                            |
+                                            \/
+
+
+
+by following way sys_open works :
+
+1.parse the file name & during parsing access the inodes of directories and one by one reach the inode of target file using parsing
+
+2.after accessing below ofile array point is applied.
+
+ALGORITHM OF SYS_OPEN :
+
+1. first path,mode,file descriptor,file pointer & inode pointer are declared
+
+2. parse the path and mode if they are invalid return
+
+3. then begin_op () // stuff related to locking and unlocking
+   begin_op() and end_op() are used when the file which sys_open() tries to open is being created for   first time.
+
+   
+4. gets the inode pointer using name_i() function.
+
+5. lowest index is size alloced from ofile and entry is added and index is returned (-1 in case of failure)
+
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+
+
+WHAT IS OFILE ARRAY ?
+
+ofile array is used to manage the open file descriptors in process file descriptor array
+
+each element of ofile contains the pointer to struct file of open file
+
+when any new file is opened by process new entry is malloced and added in ofile
+
+when any new file is closed by process that is demalloced and removed from ofile
+
+
+
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+WHAT IS FILE DESCRIPTOR ARRAY ?
+
+each process open multiple files and because of this it needs to maintain the information about thesefiles , os FDA keeps the information about the files opened by this process
+
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+WHAT DOES name_i() function do ?
+
+calls function name_x() which does the traversal
+
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+WHAT DOES name_x() do ?
+
+name_x has argument like path,name of parent and character name
+
+but in this case parent in NULL.
+
+given process is parent process.
+
+1. it declares the inode pointer and next inode pointer
+
+2. if path is root then iget() is used 
+
+3. else idup() is used by duplicating cwd from myproc().
+
+4. now its splits the path and changes the path using skipelem() till your path does not get over
+   a/bb/c (search for a in directory /) => bb/c (search for bb in directory /a ) => c (search for dir   ectory c in /a/bb )
+
+5. in above loop dirlookup() is used to locate the dir in directory and return its inode
+
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+WHAT DOES idup() do ?
+
+idup() simply increases then reference count to inode and returns the pointer
+
+reference count is maintained because it ensures that inode remains valid and does not get accidentally deleted or modified.
+
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+
+HOW DOES dirlookup() work ?
+
+its looks up the name in directory and returns it inode pointer.
+
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+WHAT DOES create() DO ?
+
+create() function creates the inode() and then returns pointer to it.
+
+

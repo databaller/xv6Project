@@ -1,0 +1,27 @@
+sys_read() takes three arguments => 
+
+
+1. from where data should be read (fd)
+2. how much data should be read (size)
+3. where read data should be stored (buff)
+
+following is the pseudocode for sys_read() function :
+
+ 1.obtain the arguments
+ 2.get the file pointer
+ 3.read the data from file pointe to buffer (use fileread() function )
+
+---------------------------------------------------------------------------------------------------
+
+what does fileread function do ?
+
+fileread() function take the 3 arguments => 
+
+	1.from where to read the file
+	2.to where to store the read data
+	3.how much data to read
+
+---------------------------------------------------------------------------------------------------
+
+sys_write() also works in same way
+
